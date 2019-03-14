@@ -23,7 +23,6 @@ public class Server {
 
     private static class RequestHandler extends Thread {
 
-        private DataOutputStream writer;
         private BufferedReader reader;
         private Socket connSocket;
 
@@ -35,50 +34,25 @@ public class Server {
 
             try{
 
-                writer = new DataOutputStream(connSocket.getOutputStream());
                 reader = new BufferedReader(new InputStreamReader(connSocket.getInputStream()));
-
-/*                String line;
-                String[] request = new String[5];
-                int count = 0;
-
-                while((line = reader.readLine()) != null){
-                    if(line.isEmpty()){
-                        break;
-                    }
-
-                    request[count] = line;
-                    count++;
-
-                }*/
 
                 String request = reader.readLine();
 
-                //parse the request
+                // parse the request
                 String page = parseRequest(request);
                 System.out.println("my page " + page);
 
-                // send response based on reques
+                // send response based on request
                 sendResponse(page);
 
-//                byte[] byteRes = "Hello World".getBytes();
-//                writer.write(byteRes);
 
-                //writer.close();
                 reader.close();
-                //connSocket.close();
+                connSocket.close();
 
             } catch (IOException e){
                 e.printStackTrace();
             }
 
-/*            try {
-                writer.close();
-                reader.close();
-                connSocket.close();
-            } catch (IOException e){
-                e.printStackTrace();
-            }*/
         }
 
         public String parseRequest(String request){
@@ -90,15 +64,34 @@ public class Server {
 
         public void sendResponse(String page){
 
+            String statusCode = null;
+            String date = "Date: Thur, 14 Mar 2019" + "\r\n";
+            String serverName = "Server: Phoenix Server" + "\r\n";
+            String contentType = "Content-Type: text/html" + "\r\n";
+            String contentLength;
+
             if(page.equals("/index")){
+
 
                 String file = "src/jennifer/server/resources/index.html";
                 File path = new File(file);
                 String absolutePath = path.getAbsolutePath();
-                //System.out.println(absolutePath);
-                try(FileInputStream fileReader = new FileInputStream(absolutePath);
-                    BufferedOutputStream byteWriter = new BufferedOutputStream(new DataOutputStream(connSocket.getOutputStream()))){
 
+                statusCode = "HTTP/1.1 200 OK" + "\r\n";
+                contentLength = Long.toString(path.length());
+
+
+                try(FileInputStream fileReader = new FileInputStream(absolutePath);
+                    DataOutputStream byteWriter = new DataOutputStream(connSocket.getOutputStream())){
+
+                    //writing response headers to the connecting socket (client)
+                    byteWriter.writeBytes(statusCode);
+                    byteWriter.writeBytes(date);
+                    byteWriter.writeBytes(serverName);
+                    byteWriter.writeBytes(contentType);
+                    byteWriter.writeBytes(contentLength);
+
+                    //writing response body to the connecting socket (client)
                     int byteRead;
                     byte[] buffer = new byte[1024];
                     while((byteRead = fileReader.read(buffer)) != -1){
@@ -106,6 +99,11 @@ public class Server {
 
                     }
 
+                    System.out.println(statusCode
+                                        + date
+                                        + serverName
+                                        + contentType
+                                        + contentLength);
 
 
                 } catch (FileNotFoundException e){
@@ -115,6 +113,7 @@ public class Server {
                     System.out.println("something went wrong while reading file");
                 }
             }
+
 
         }
 
