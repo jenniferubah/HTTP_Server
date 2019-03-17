@@ -8,16 +8,17 @@ import java.net.Socket;
 public class Server {
 
     private ServerSocket serverSocket;
+    private static int count = 0;
 
     public void start(int port) {
 
         try{
 
             serverSocket = new ServerSocket(port);
-            Socket connSocket = serverSocket.accept();
 
             while(true){
-
+                Socket connSocket = serverSocket.accept();
+                count++;
                 new RequestHandler(connSocket).start();
             }
 
@@ -63,10 +64,12 @@ public class Server {
 
             String[] firstLine = request.split(" ");
             String filePath = firstLine[1];
+            System.out.println(filePath);
             return filePath;
         }
 
         public void processRequest(String file){
+
             //check if path exits
             String path = "src/jennifer/server/resources" + file;
             String absolutePath = new File(path).getAbsolutePath();
@@ -75,7 +78,8 @@ public class Server {
 
             if(rootPath.exists()){
 
-                String contentLength = Long.toString(absolutePath.length());
+                String contentLength = Long.toString(rootPath.length());
+                System.out.println(contentLength);
                 String[] headers = constructHeader("HTTP/1.1 200 OK", contentLength);
                 sendResponse(headers, rootPath);
             }
@@ -86,7 +90,7 @@ public class Server {
                  rootPath = new File(absolutePath);
                  System.out.println(rootPath);
 
-                String contentLength = Integer.toString(absolutePath.length());
+                String contentLength = Long.toString(rootPath.length());
                 String[] headers = constructHeader("HTTP/1.1 404 NOT FOUND", contentLength);
                 sendResponse(headers, rootPath);
             }
@@ -95,16 +99,25 @@ public class Server {
 
         public String[] constructHeader(String statusCode, String contentLength){
 
-            String[] headers = new String[5];
+            String[] headers = new String[6];
             headers[0] = statusCode + "\r\n";
             headers[1]= "Date: Fri, 15 Mar 2019" + "\r\n";
             headers[2] = "Server: Phoenix Server" + "\r\n";
-            headers[3] = "text/html; text/css; charset=utf-8" + "\r\n";
+            if(count == 3){
+                System.out.println(count);
+                headers[3] = "Content-Type: image/png" + "\r\n";
+            }
+            else{
+
+                headers[3] = "Content-Type: text/html; text/css; charset=utf-8" + "\r\n";
+            }
             headers[4] = "Content-Length: " + contentLength + "\r\n";
+            headers[5] = "\r\n";
 
             return headers;
 
         }
+
 
         public void sendResponse(String[] headers, File file){
 
@@ -124,8 +137,13 @@ public class Server {
 
                 //writing response body to the connecting socket (client)
                 int byteRead;
-                byte[] buffer = new byte[1024];
+                byte[] buffer = new byte[1048576];
                 while((byteRead = fileReader.read(buffer)) != -1){
+
+                    String s = new String(buffer);
+                    System.out.println(s);
+                    System.out.println(byteRead);
+
                     byteWriter.write(buffer, 0, byteRead);
 
                 }
