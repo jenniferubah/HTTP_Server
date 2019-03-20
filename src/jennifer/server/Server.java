@@ -8,7 +8,12 @@ import java.net.Socket;
 public class Server {
 
     private ServerSocket serverSocket;
-    private static int count = 0;
+
+    /**
+     * This method creates a server with port number
+     * @param port - port number of the server
+     *
+     * */
 
     public void start(int port) {
 
@@ -21,7 +26,6 @@ public class Server {
                 // creates a connection socket to listen and accept
                 // requests from clients
                 Socket connSocket = serverSocket.accept();
-                count++;
 
                 //creates a new thread to handle requests
                 new RequestHandler(connSocket).start();
@@ -32,10 +36,18 @@ public class Server {
         }
     }
 
+    /**
+    *
+    * This class creates a thread that handles requests for a client
+    *
+    * @author Jennifer Ubah
+    *
+    * */
 
     private static class RequestHandler extends Thread {
 
         private Socket connSocket;
+
 
         public RequestHandler(Socket connSocket) {
             this.connSocket = connSocket;
@@ -63,13 +75,30 @@ public class Server {
 
         }
 
+        /**
+        * This method parses a request
+        *
+        * @param request - request in the format GET /index.html HTTP/1.1
+        * @return - file to get {/index.html}
+         *
+         */
+
         public String parseRequest(String request){
 
             String[] firstLine = request.split(" ");
             String filePath = firstLine[1];
-            System.out.println(filePath);
             return filePath;
         }
+
+
+        /**
+         *
+         * This method processes the request
+         *
+         * @param file - requested file {index}
+         * @param fileExt - extension of the file {.html}
+         *
+         */
 
         public void processRequest(String file, String fileExt){
 
@@ -87,7 +116,7 @@ public class Server {
                 sendResponse(headers, rootPath);
             }
             else{
-                path = "src/jennifer/server/resources/NotFound.txt.txt";
+                path = "src/jennifer/server/resources/NotFound.txt";
                 absolutePath = new File(path).getAbsolutePath();
                 rootPath = new File(absolutePath);
                 System.out.println(rootPath);
@@ -98,6 +127,15 @@ public class Server {
             }
         }
 
+        /**
+         * This method constructs a response header for the appropriate file
+         *
+         * @param statusCode - standard HTPP status code
+         * @param contentLength - lenght of the requested file
+         * @param ext - file extension
+         * @return  an array of header values
+         */
+
         public String[] constructHeader(String statusCode, String contentLength, String ext){
 
             String[] headers = new String[8];
@@ -105,7 +143,7 @@ public class Server {
             headers[1]= "Date: Mon, 18 Mar 2019 17:00:00 GMT" + "\r\n";
             headers[2] = "Server: Phoenix Server" + "\r\n";
 
-            if(ext.equals("png")){
+            if(ext.equals("png") || ext.equals("jpeg")){
                 System.out.println("This is an image");
                 headers[3] = "Content-Type: image/png" + "\r\n";
             }
@@ -120,8 +158,16 @@ public class Server {
                 headers[3] = "Content-Type: text/html charset=utf-8; " + "\r\n";
             }
 
+            else if (ext.equals("pdf")){
+                headers[3] = "Content-Type: application/pdf; charset=utf-8" + "\r\n";
+            }
+
+            else if (ext.equals("docx")){
+                headers[3] = "Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document; charset=utf-8" + "\r\n";
+            }
+
             else {
-                headers[3] = "Content-Type: text/plain; charset=utf-8" + "\r\n";
+                headers[3] = "Content-Type: type/text; charset=utf-8" + "\r\n";
             }
             headers[4] = "Content-Length: " + contentLength  + "\r\n";
             headers[5] = "Connection: close "+ "\r\n";
@@ -131,6 +177,16 @@ public class Server {
             return headers;
 
         }
+
+
+        /**
+         * This method sends the response to the client
+         *
+         * @param headers - array of header values
+         * @param file - requested file
+         *
+         *
+         */
 
         public void sendResponse(String[] headers, File file){
 
