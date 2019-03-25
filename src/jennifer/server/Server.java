@@ -143,39 +143,36 @@ public class Server {
             headers[1]= "Date: Mon, 18 Mar 2019 17:00:00 GMT" + "\r\n";
             headers[2] = "Server: Phoenix Server" + "\r\n";
 
-            if(ext.equals("png") || ext.equals("jpeg")){
-                System.out.println("This is an image");
-                headers[3] = "Content-Type: image/png" + "\r\n";
+            switch (ext) {
+                case "png":
+                    headers[3] = "Content-Type: image/png" + "\r\n";
+                    break;
+                case "jpeg":
+                    headers[3] = "Content-Type: image/jpeg" + "\r\n";
+                    break;
+                case "css":
+                    headers[3] = "Content-Type: text/css charset=utf-8;" + "\r\n";
+                    break;
+                case "html":
+                    headers[3] = "Content-Type: text/html charset=utf-8;" + "\r\n";
+                    break;
+                case "pdf":
+                    headers[3] = "Content-Type: application/pdf; charset=utf-8" + "\r\n";
+                    break;
+                case "docx":
+                    headers[3] = "Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document; charset=utf-8" + "\r\n";
+                    break;
+                default:
+                    headers[3] = "Content-Type: text/plain; charset=utf-8" + "\r\n";
+                    break;
             }
 
-            else if (ext.equals("css")){
-                System.out.println("This is a css file");
-                headers[3] = "Content-Type: text/css charset=utf-8; " + "\r\n";
-            }
-
-            else if (ext.equals("html")){
-                System.out.println("This is an html file");
-                headers[3] = "Content-Type: text/html charset=utf-8; " + "\r\n";
-            }
-
-            else if (ext.equals("pdf")){
-                headers[3] = "Content-Type: application/pdf; charset=utf-8" + "\r\n";
-            }
-
-            else if (ext.equals("docx")){
-                headers[3] = "Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document; charset=utf-8" + "\r\n";
-            }
-
-            else {
-                headers[3] = "Content-Type: type/text; charset=utf-8" + "\r\n";
-            }
             headers[4] = "Content-Length: " + contentLength  + "\r\n";
             headers[5] = "Connection: close "+ "\r\n";
             headers[6] = "\r\n";
             headers[7] = "\n\n";
 
             return headers;
-
         }
 
 
